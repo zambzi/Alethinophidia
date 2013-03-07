@@ -1,0 +1,199 @@
+//stary kod slideIn z Transitions:
+
+public void slideIn(int time, int length, Vector startPos, Vector endPos, int startingSpeed){
+		if(!itemReady){
+			item.setPosition(startPos);
+			slideTimer = 1;
+			itemReady = true;
+		}
+		if(slideTimer>=time && slideTimer<time+length){
+			double acceleration = ((endPos.getLength()-startPos.getLength()))/Math.pow(length,2);
+			double speed = startingSpeed-acceleration*(slideTimer-time);
+			System.out.print("speed ");
+			System.out.println(Math.abs(speed));
+			Vector tmp = endPos.getVectorChunk(Math.abs(speed));
+			if(speed>=0)
+				item.setPosition(new Vector(tmp.getX()+item.getPosition().getX(),tmp.getY()+item.getPosition().getY()));
+		}
+		if(slideTimer < time+length){
+			slideTimer++;
+		}
+	}
+	
+	/*/3.85*/
+	_________________________________________________________________________
+	Poprzednia zawartoœc MainMenu:
+	
+	package Alethinophidia.userInterface;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.view.MotionEvent;
+import Alethinophidia.game.GameView;
+import Alethinophidia.game.R;
+import Alethinophidia.game.Switchboard;
+import Alethinophidia.utils.Vector;
+
+public class MainMenu {
+	private Switchboard switchboard;
+	private GameView gameView;
+	private boolean hidden;
+	private boolean entryAnimation;
+	private boolean exitAnimation;
+	private Field scoreBoard;
+	private Field newGame;
+	private Field options;
+	private Field back;
+	private Field quit;
+	private long timer;
+	
+	public MainMenu(Switchboard switchboard, GameView gameView){
+		this.gameView = gameView;
+		this.switchboard = switchboard;
+		hidden = true;
+		entryAnimation = false;
+		exitAnimation = false;
+	 
+		Bitmap bmp = BitmapFactory.decodeResource(gameView.getResources(), R.drawable.newgame);
+		newGame = new Field(new Vector(0.1,0.5), 0.8f, 0.095f, bmp, gameView);
+		
+		bmp = BitmapFactory.decodeResource(gameView.getResources(), R.drawable.options);
+		options = new Field(new Vector(0.1,0.65), 0.8f, 0.095f, bmp, gameView);
+		
+		bmp = BitmapFactory.decodeResource(gameView.getResources(), R.drawable.back);
+		back = new Field(new Vector(0.1,0.8), 0.8f, 0.095f, bmp, gameView);
+		
+		bmp = BitmapFactory.decodeResource(gameView.getResources(), R.drawable.scoreboard);
+		scoreBoard = new Field(new Vector(0.1,0.8), 0.8f, 0.095f, bmp, gameView);
+		
+		bmp = BitmapFactory.decodeResource(gameView.getResources(), R.drawable.quit);
+		quit = new Field(new Vector(0.1,0.95), 0.8f, 0.095f, bmp, gameView);
+	}
+	
+	public void onTouchEvent(MotionEvent event, Switchboard switchboard){
+		if(event.getAction() == MotionEvent.ACTION_DOWN){
+			if(!hidden && !entryAnimation && !exitAnimation){
+				if(newGame.isPointOnField(event.getX(), event.getY())){
+					setNewGame();
+				}
+				else if(options.isPointOnField(event.getX(), event.getY())){
+					setOptions();
+				}
+				else if(back.isPointOnField(event.getX(), event.getY())){
+					setBack();
+				}
+				else if(scoreBoard.isPointOnField(event.getX(), event.getY())){
+				}
+				else if(quit.isPointOnField(event.getX(), event.getY())){
+					setQuit();
+				}
+			}
+		}
+	}
+	
+	public void onDraw(Canvas canvas){
+		if(!hidden){
+			if(entryAnimation)
+				animateEntry();
+			if(exitAnimation)
+				animateExit();
+			newGame.onDraw(canvas);
+			options.onDraw(canvas);
+			back.onDraw(canvas);
+			scoreBoard.onDraw(canvas);
+			quit.onDraw(canvas);
+		}
+	}
+	
+	public void animateEntry(){
+		newGame.getTransitions().slideIn(0, 10, new Vector(0.1,-0.1), new Vector(0.0,0.55));
+		options.getTransitions().slideIn(5, 10, new Vector(0.1,-0.1), new Vector(0.0,0.65));
+		back.getTransitions().slideIn(10, 10, new Vector(0.1,-0.1), new Vector(0.0,0.75));
+		scoreBoard.getTransitions().slideIn(15, 10, new Vector(0.1,-0.1), new Vector(0.0,0.85));
+		quit.getTransitions().slideIn(15, 10, new Vector(0.1,-0.1), new Vector(0.0,0.95));
+	}
+	
+	public void animateExit(){
+		newGame.getTransitions().slideIn(0, 10, new Vector(0.1,0.55), new Vector(0.0,-0.4));
+		options.getTransitions().slideIn(5, 10, new Vector(0.1,0.65), new Vector(0.0,-0.4));
+		back.getTransitions().slideIn(10, 10, new Vector(0.1,0.75), new Vector(0.0,-0.4));
+		scoreBoard.getTransitions().slideIn(15, 10, new Vector(0.1,0.85), new Vector(0.0,-0.4));
+		quit.getTransitions().slideIn(15, 10, new Vector(0.1,0.95), new Vector(0.0,-0.4));
+	}
+	
+	public void update(){
+		if(switchboard.getFlag("mainMenu") && hidden == true){
+			hidden = false;
+			entryAnimation = true;
+		}
+		else if(!switchboard.getFlag("mainMenu") && hidden == false){
+			hidden = true;
+		}
+		
+		if(entryAnimation && quit.getTransitions().isSlideOver()){
+			entryAnimation = false;
+		}
+		
+		timer++;
+	}
+	
+	private void setNewGame(){
+		switchboard.startGame();
+		gameView.switchboardController();
+	}
+	
+	private void setOptions(){
+		//switchboard.
+	}
+	
+	private void setBack(){
+		switchboard.stopPause();
+		gameView.switchboardController();
+		
+	}
+	
+	private void setQuit(){
+		switchboard.quit();
+		gameView.switchboardController();
+	}
+	
+}
+________________________________________________________________
+	
+	
+	stary kod z MapReader:
+	
+	private void readMapFromFile(Context context, int resource){
+		try{
+			InputStream input = context.getResources().openRawResource(resource);
+			InputStreamReader inputReader = new InputStreamReader(input);
+			BufferedReader bufferedReader = new BufferedReader(inputReader);
+			
+			try{
+				for(int x = 0; x<MapGrid.ROWS; x++){
+					for(int y = 0; y<=MapGrid.COLUMNS+1; y++){ //the <= operator is used instead of < operator to catch remaining \n tokens
+						int token = bufferedReader.read();
+						if(token == 'w'){
+							walls.add(new Vector(y,x)); //add wall in position x,y
+						}
+						else if(token == 's'){
+							snakePos = new Vector(y,x);
+						}
+						
+						if(token != '\n' && y==MapGrid.COLUMNS+1){
+							
+							break; //break the loop to disallow creation of messed up map if \n token arrives too late
+						}
+					}
+				}
+				isEmpty = false;
+				input.close();
+			} catch (IOException e) {
+				isEmpty = true;
+			}
+		} catch (android.content.res.Resources.NotFoundException e){
+			isEmpty = true;
+		}
+	}
